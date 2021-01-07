@@ -21,7 +21,7 @@ export default function Home() {
         <Row>
           <Col>
             <div>
-              <img src="profile.png"/>
+              <img src="/profile.png"/>
             </div>
           </Col>
           <Col>
@@ -29,7 +29,7 @@ export default function Home() {
               <Row className="justify-content-center text-center">
                 <div>
                   <h1 className="project-title">Projects</h1>
-                  <video id="project" src="tinykeep_project_test.mp4" loop={true} muted={true} width="300"/>
+                  <video id="project" src="/tinykeep_project.mp4" loop={true} muted={true} width="300"/>
                 </div>
               </Row>
               <Row className="justify-content-center text-center">
