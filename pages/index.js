@@ -21,7 +21,7 @@ export default function Home() {
         <Row>
           <Col>
             <div>
-              <img src="/profile.png"/>
+              <img src="/static/profile.png"/>
             </div>
           </Col>
           <Col>
