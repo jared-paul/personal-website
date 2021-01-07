@@ -1,0 +1,105 @@
+import BlogPost from "../../../../components/blog/BlogPost";
+import { Post } from "../../../../components/blog/Post";
+import { importPost } from "../../../../functions/blog/getBlogPosts";
+import Link from "next/link";
+
+
+export const meta = {
+  folder: 'condition_variables_in_os161',
+  title: 'Condition Variables/Monitors in OS161',
+  description: 'Getting started and implementing condition variables in OS161',
+  date: 'Aug 04, 2020',
+  readTime: 2,
+  tags: ["condition", "synchronization", "cond", "condition variables", "synchronize", "cv", "os161"]
+}
+
+export default ({ children }) => <BlogPost meta={meta} related={
+  <Post post={importPost("locks_in_os161")} />
+}>{children}</BlogPost>;
+
+### What are condition variables?
+
+The definition surrounding condition variables is a little questionable. Technically a condition variable is:
+> A container of threads that are waiting for a certain condition
+>
+> — <cite><a href="https://en.wikipedia.org/wiki/Monitor_(synchronization)" target="_blank">Wikipedia</a></cite>
+
+However, many people refer to them as what they should be referred to as **Monitors**. A monitor is:
+> A synchronization construct that allows threads to have both mutual exclusion and the ability to wait (block) for a certain condition to become false. Monitors also have a mechanism for signaling other threads that their condition has been met. A monitor consists of a mutex (lock) object and **condition variables**.
+>
+> — <cite><a href="https://en.wikipedia.org/wiki/Monitor_(synchronization)" target="_blank">Wikipedia</a></cite>
+
+All things considered, it doesn't matter too much as long as there isn't any confusion.
+
+### Use-case
+
+A common use of monitors is a bounded buffer 
+
+```java
+void put(int number)
+{
+  lock_acquire(cv_lock);
+  while (itemsFull)
+  {
+    cv_wait(itemsNotFull, cv_lock);
+  }
+
+  items.add(number);
+
+  cv_signal(itemsNotEmpty, cv_lock);
+  lock_release(cv_lock);
+}
+
+void take()
+{
+  lock_acquire(cv_lock);
+  while (itemsEmpty)
+  {
+    cv_wait(itemsNotEmpty, cv_lock);
+  }
+
+  int number = items.poll();
+
+  cv_signal(itemsNotFull, cv_lock);
+  lock_release(cv_lock);
+}
+```
+— Adapted from <cite><a href="https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/locks/Condition.html" target="_blank">Oracle</a></cite>
+
+### Implementation
+
+This post assumes you have already implemented locks in OS161. If you haven't please check out <Link href={"/blog/posts/locks_in_os161"}><a href="#" style={{color: "#e83e8c"}}>implementing locks in OS161</a></Link>
+
+As above, to implement a monitor we need a lock and the actual condition variable. We already have our lock, but we still need our representation of
+a condition variable. To represent a condition variable all we need is a wait channel (wchan). Our condition variable struct only needs to contain
+a wait channel and a name. In reality, we don't need a name, but our wait channel does so we should just add it.
+
+There is one more thing we need that is specific to OS161 to implement our monitor: a spinlock. Since we are using a wait channel for our implementation, the wait channel
+is not inherently thread-safe. Meaning, we have to guard the wait channel ourselves with a spinlock.
+
+Note: each condition variable has its own wait channel
+
+**<span style={{fontSize: 'larger'}}>`Create`</span> :**
+
+We need to create our wait channel, initialize our spinlock, and allocate space for our condition variable.
+We don't need to handle any synchronization in the creation of our monitor.
+
+**<span style={{fontSize: 'larger'}}>`Destroy`</span> :**
+
+Destroying is basically just freeing up the memory that we allocated in creation, cleaning up the spinlock, and
+destroying the wait channel.
+
+**<span style={{fontSize: 'larger'}}>`Wait`</span> :**
+ 
+We want to acquire our wait channels spinlock in order to protect it. From the example use-case above, we should already hold
+our monitors lock. Before we sleep on the wait channel we want to release the lock in-order to let someone else use it while we
+are sleeping (not doing anything). Once we've released the lock we sleep on the wait channel. When we are woken up we need to release 
+the wait channel's spin lock and reacquire our monitor's lock.
+
+**<span style={{fontSize: 'larger'}}>`Signal`</span> :**
+
+Signal is very easy! All we need to do is wake someone up that is sleeping on the wait channel. Don't forget to protect it with its spinlock.
+
+**<span style={{fontSize: 'larger'}}>`Broadcast`</span> :**
+
+Broadcast is identical to `signal(...)` with the exception of instead of waking up only one thread, we wake up all threads.
