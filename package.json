@@ -13,6 +13,7 @@
     "@react-firebase/database": "^0.3.11",
     "bootstrap": "^4.5.3",
     "firebase": "^8.2.1",
+    "gh-pages": "^3.1.0",
     "js-levenshtein": "^1.1.6",
     "next": "10.0.4",
     "prism-react-renderer": "^1.1.1",
