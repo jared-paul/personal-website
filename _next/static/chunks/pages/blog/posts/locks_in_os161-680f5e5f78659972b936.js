@@ -1,0 +1,1 @@
+_N_E=(window.webpackJsonp_N_E=window.webpackJsonp_N_E||[]).push([[12],{"Qm+A":function(_,n,o){(window.__NEXT_P=window.__NEXT_P||[]).push(["/blog/posts/locks_in_os161",function(){return o("CJad")}])}},[["Qm+A",1,2,5,0,3,4]]]);
