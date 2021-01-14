@@ -33,7 +33,7 @@ OS161 already gives us an implementation of a counting semaphore using wait chan
 **<span style={{fontSize: 'larger'}}>`P`</span>** and **<span style={{fontSize: 'larger'}}>`V`</span>** functions.
 I like to call them "wait" and "signal"; it makes more intuitive sense to me.
 
-**<span style={{fontSize: 'larger'}}>`P`</span>:**
+**<span style={{fontSize: 'larger'}}>`P`</span> :**
 1. Acquire the spinlock of the semaphore since the semaphore is a shared resource 
 2. Check if there are resources available (`sem_count > 0`)
 3. If resources are available goto 
@@ -43,7 +43,7 @@ I like to call them "wait" and "signal"; it makes more intuitive sense to me.
 7. There are now resources available, decrement `sem_count`
 8. Release the spinlock
 
-**<span style={{fontSize: 'larger'}}>`V`</span>:**
+**<span style={{fontSize: 'larger'}}>`V`</span> :**
 
 1. Acquire the spinlock of the semaphore
 2. Increment `sem_count` to indicate resources are now available
@@ -64,7 +64,8 @@ available at a time. In otherwords, only one thread can acquire the resource at 
   <figcaption>Figure 1 - Diagram of a Binary Semaphore</figcaption>
 </figure>
 
-The above functions **Wait** and **Signal** describe this diagram where `sem_count = {0, 1}`
+The above functions **<span style={{fontSize: 'larger'}}>`P`</span>** and
+**<span style={{fontSize: 'larger'}}>`V`</span>** describe this diagram where `sem_count = {0, 1}`
 
 ### Implementation
 
@@ -75,18 +76,18 @@ implemenation of the counting semaphore already provided.
 Our lock must depend on a wait channel, spinlock, and state. If implementing a function that checks who holds the lock
 we will also need an owner. It's safe to say your lock struct should have these things included in some fashion.
 
-**Creation:**
+**<span style={{fontSize: 'larger'}}>`Create`</span> :**
 
 We need to initialize all of our synchronization primitives and allocate space for our lock.
 There will be no owner of the lock (`NULL`).
 We don't need to handle any synchronization in the creation of our lock.
 
-**Destroying:**
+**<span style={{fontSize: 'larger'}}>`Destroy`</span> :**
 
 Destroying is basically just freeing up the memory that we allocated in creation, cleaning up the spinlock, and
 destroying the wait channel.
 
-**Acquiring (Wait):**
+**<span style={{fontSize: 'larger'}}>`Acquire`</span> :**
 
 We want to acquire our spinlock and check if the resource is available. While the resource is unavailable 
 we sleep on the wait channel till someone wakes us up.
@@ -97,12 +98,12 @@ Note: it might seem weird that we release the spinlock right away, but remember 
 the *inner* lock that protects our binary semaphore and any other non-synchronized fields. Our binary semaphores
 `state` is the real lock.
 
-**Releasing (Signal):**
+**<span style={{fontSize: 'larger'}}>`Release`</span> :**
 
 We acquire the spinlock set our binary semaphores state to 1 indicating the resource is available. After the state
 is set to 1 we want to wake up a thread that is sleeping on the wait channel. We then release the spinlock.
 
-**Who holds the lock?**
+**<span style={{fontSize: 'larger'}}>`Who holds the lock?`</span> :**
 
 To check who holds the lock we should acquire the spinlock and compare the current thread with a saved owner thread
 of the lock.
